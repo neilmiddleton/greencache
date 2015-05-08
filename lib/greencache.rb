@@ -24,7 +24,7 @@ module Greencache
       value
     end
 
-    def read_from_cache!(redis_key)
+    private def read_from_cache!(redis_key)
       value = get_value!(redis_key)
       log("cache.hit", redis_key)
       value
@@ -46,7 +46,7 @@ module Greencache
       value
     end
 
-    def get_value!(key)
+    private def get_value!(key)
       raise CacheMiss unless redis.exists(key)
       decrypt redis.get(key)
     end
