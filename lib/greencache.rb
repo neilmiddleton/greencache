@@ -15,12 +15,12 @@ module Greencache
       yield(configuration)
     end
 
-    def cache(redis_key, &block)
+    def cache(redis_key, except:[], &block)
       return block.call if skip_cache? || !redis_up?
       read_from_cache!(redis_key)
     rescue CacheMiss
       value = block.call
-      write_into_cache(redis_key, value)
+      write_into_cache(redis_key, value) unless except.include? value
       value
     end
 
