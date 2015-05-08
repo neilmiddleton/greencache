@@ -7,6 +7,7 @@ Fernet::Configuration.run do |config|
 end
 
 module Greencache
+  class CacheMiss < RuntimeError; end
   class << self
     attr_writer :configuration
 
@@ -16,17 +17,25 @@ module Greencache
 
     def cache(redis_key, &block)
       return block.call if skip_cache? || !redis_up?
-      value = read_from_cache(redis_key)
-      return value if value
+      read_from_cache!(redis_key)
+    rescue CacheMiss
       value = block.call
       write_into_cache(redis_key, value)
       value
     end
 
-    def read_from_cache(redis_key, &block)
-      value = get_value(redis_key)
-      value.nil? ? log("cache.miss", redis_key) : log("cache.hit", redis_key)
-      return value
+    private def read_from_cache!(redis_key)
+      value = get_value!(redis_key)
+      log("cache.hit", redis_key)
+      value
+    rescue CacheMiss
+      log("cache.miss", redis_key)
+      raise
+    end
+
+    def read_from_cache
+      read_from_cache!(redis_key)
+    rescue CacheMiss
     end
 
     def write_into_cache(redis_key, value)
@@ -37,8 +46,14 @@ module Greencache
       value
     end
 
-    def get_value(key)
+    private def get_value!(key)
+      raise CacheMiss unless redis.exists(key)
       decrypt redis.get(key)
+    end
+
+    def get_value(key)
+      get_value!(key)
+    rescue CacheMiss
     end
 
     def set_value(key, value)
