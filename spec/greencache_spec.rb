@@ -48,7 +48,7 @@ describe Greencache do
     end
 
     it 'uses the cached' do
-      expect(rc).to receive(:read_from_cache){ {} }
+      expect(rc).to receive(:read_from_cache!){ {} }
       Dummy.run
     end
 
@@ -89,7 +89,8 @@ describe Greencache do
     rc.write_into_cache("foo", p.call)
   end
 
-  it 'can get a value' do
+  it "can get a value that's been set" do
+    rc.redis.set "foo", "bar"
     expect(rc.redis).to receive(:get).with("foo"){ "bar" }
     expect(rc).to receive(:decrypt).with("bar")
     rc.get_value("foo")
