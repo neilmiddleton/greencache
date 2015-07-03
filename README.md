@@ -26,7 +26,7 @@ Or install it yourself as:
 
 ```ruby
 
-GreenCache.configure do |c|
+Greencache.configure do |c|
   c.redis = $redis
   c.secret = <some_long_hash>
   c.encrypt = true
