@@ -65,50 +65,48 @@ describe Greencache do
       expect(Dummy).to receive(:get_value){ "bar" }
       Dummy.run
     end
-
   end
 
-  describe 'configuration' do
-    it 'respects cache_time' do
-      config.cache_time = 100
-      expect(rc.cache_time).to eq(100)
-    end
+  context 'merging the configuration' do
 
-    it 'respects skip_cache' do
+    it 'keeps the global config' do
       config.skip_cache = true
-      expect(rc.skip_cache?).to eq(true)
+
+      config = rc.merge_config({})
+      expect(config).to be_a(Hash)
+      expect(config[:skip_cache]).to eql(true)
     end
 
-    it 'knows the secret' do
-      config.secret = "bar"
-      expect(rc.secret).to eq("bar")
+    it 'overrides provided values' do
+      config.skip_cache = true
+
+      config = rc.merge_config({skip_cache: false})
+      expect(config).to be_a(Hash)
+      expect(config[:skip_cache]).to eql(false)
     end
   end
 
   it 'can write into the cache' do
     p = Proc.new { "" }
-    expect(rc).to receive(:set_value).with("foo", "")
-    rc.write_into_cache("foo", p.call)
+    config = rc.merge_config({})
+    expect(rc).to receive(:set_value).with("foo", "", config)
+    rc.write_into_cache("foo", p.call, config)
   end
 
   it "can get a value that's been set" do
     rc.redis.set "foo", "bar"
     expect(rc.redis).to receive(:get).with("foo"){ "bar" }
-    expect(rc).to receive(:decrypt).with("bar")
-    rc.get_value("foo")
+    expect(rc).to receive(:decrypt).with("bar", {encrypt: true})
+    rc.get_value("foo", {encrypt: true})
   end
 
   it 'can set a value' do
-    config.cache_time = 100
-    config.encrypt = false
     expect(rc.redis).to receive(:setex).with("foo", 100, '"bar"')
-    rc.set_value("foo", "bar")
+    rc.set_value("foo", "bar", {cache_time: 100, encrypt: false})
   end
 
   it 'encrypts' do
-    config.encrypt = true
-    config.secret = "foo"
     expect(rc.fernet).to receive(:generate).with("foo", '"bar"'){ "abc" }
-    rc.encrypt("bar")
+    rc.encrypt("bar", {encrypt: true, secret: 'foo'})
   end
 end

@@ -18,5 +18,18 @@ module Greencache
       @logger = nil
       @log_prefix = "greencache"
     end
+
+    def to_hash
+      {
+        cache_time: cache_time,
+        encrypt:    encrypt,
+        secret:     secret,
+        skip_cache: skip_cache,
+        silent:     silent,
+        logger:     logger,
+        log_prefix: log_prefix,
+        redis:      redis
+      }
+    end
   end
 end
