@@ -87,8 +87,15 @@ describe Greencache do
 
   it 'can write into the cache' do
     p = Proc.new { "" }
-    expect(rc).to receive(:set_value).with("foo", "")
+    expect(rc).to receive(:set_value).with("foo", "", cache_time: nil)
     rc.write_into_cache("foo", p.call)
+  end
+
+
+  it 'respects cache time passed in arguments' do
+    p = Proc.new { "" }
+    expect(rc).to receive(:set_value).with("foo", "", cache_time: 10)
+    rc.write_into_cache("foo", p.call, cache_time: 10)
   end
 
   it "can get a value that's been set" do
@@ -103,6 +110,13 @@ describe Greencache do
     config.encrypt = false
     expect(rc.redis).to receive(:setex).with("foo", 100, '"bar"')
     rc.set_value("foo", "bar")
+  end
+
+  it 'can set a value with cache time' do
+    config.cache_time = 100
+    config.encrypt = false
+    expect(rc.redis).to receive(:setex).with("foo", 10, '"bar"')
+    rc.set_value("foo", "bar", cache_time: 10)
   end
 
   it 'encrypts' do

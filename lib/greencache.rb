@@ -15,12 +15,12 @@ module Greencache
       yield(configuration)
     end
 
-    def cache(redis_key, &block)
+    def cache(redis_key, cache_time: nil, &block)
       return block.call if skip_cache? || !redis_up?
       read_from_cache!(redis_key)
     rescue CacheMiss
       value = block.call
-      write_into_cache(redis_key, value)
+      write_into_cache(redis_key, value, cache_time: cache_time)
       value
     end
 
@@ -38,10 +38,10 @@ module Greencache
     rescue CacheMiss
     end
 
-    def write_into_cache(redis_key, value)
+    def write_into_cache(redis_key, value, cache_time: nil)
       with_redis do
         log("cache.write", redis_key)
-        set_value(redis_key, value)
+        set_value(redis_key, value, cache_time: cache_time)
       end
       value
     end
@@ -56,8 +56,9 @@ module Greencache
     rescue CacheMiss
     end
 
-    def set_value(key, value)
-      redis.setex key, configuration.cache_time, encrypt(value)
+    def set_value(key, value, cache_time: nil)
+      cache_time ||= configuration.cache_time
+      redis.setex key, cache_time, encrypt(value)
     end
 
     def encrypt(value)
