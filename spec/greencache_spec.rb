@@ -1,9 +1,11 @@
 require 'spec_helper'
 require 'fernet'
+require 'logger'
+require 'multi_json'
 
 Greencache.configure do |c|
   c.redis = Redis.new
-  c.logger = Pliny
+  c.logger = Logger.new(StringIO.new)
   c.silent = true
 end
 

@@ -4,7 +4,6 @@ Bundler.require
 require 'greencache'
 require 'redis'
 require 'fakeredis'
-require 'pliny'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
