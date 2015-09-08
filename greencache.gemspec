@@ -22,9 +22,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "fakeredis", "~> 0.5"
-  spec.add_development_dependency "multi_json", "~> 1.9",  ">= 1.9.3"
 
   spec.add_dependency "fernet", "~> 2.1"
   spec.add_dependency "redis", "~> 3.1"
-  spec.add_dependency "multi_json", "~> 1.10"
+  spec.add_dependency "multi_json", "~> 1.9", ">= 1.9.3"
 end
