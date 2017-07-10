@@ -72,7 +72,7 @@ module Greencache
 
     def decrypt(value, config)
       return nil if value.nil?
-      return value unless config[:encrypt]
+      return MultiJson.load(value) unless config[:encrypt]
       verifier = fernet.verifier(config[:secret], value)
       return MultiJson.load(verifier.message) if verifier.valid?
       return nil
