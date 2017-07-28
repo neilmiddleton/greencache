@@ -69,6 +69,10 @@ information</td>
     <td>String to prefix to l2met compatible log lines</td>
   </tr>
   <tr>
+    <td>:key_prefix</td>
+    <td>String to prefix all cache keys in redis with</td>
+  </tr>
+  <tr>
     <td>:cache_time</td>
     <td>Time (in seconds) to cache data for before expiring</td>
   </tr>

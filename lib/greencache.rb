@@ -15,41 +15,41 @@ module Greencache
       yield(configuration)
     end
 
-    def cache(redis_key, config = {}, &block)
+    def cache(key, config = {}, &block)
       config = merge_config(config)
       return block.call if config[:skip_cache] || !redis_up?
-      read_from_cache!(redis_key, config)
+      read_from_cache!(key, config)
     rescue CacheMiss
       value = block.call
-      write_into_cache(redis_key, value, config)
+      write_into_cache(key, value, config)
       value
     end
 
-    private def read_from_cache!(redis_key, config)
-      value = get_value!(redis_key, config)
-      log("cache.hit", redis_key, config)
+    private def read_from_cache!(key, config)
+      value = get_value!(key, config)
+      log("cache.hit", redis_key(key, config), config)
       value
     rescue CacheMiss
-      log("cache.miss", redis_key, config)
+      log("cache.miss", redis_key(key, config), config)
       raise
     end
 
     def read_from_cache
-      read_from_cache!(redis_key)
+      read_from_cache!(key)
     rescue CacheMiss
     end
 
-    def write_into_cache(redis_key, value, config)
+    def write_into_cache(key, value, config)
       with_redis do
-        log("cache.write", redis_key, config)
-        set_value(redis_key, value, config)
+        log("cache.write", redis_key(key, config), config)
+        set_value(key, value, config)
       end
       value
     end
 
     private def get_value!(key, config)
-      raise CacheMiss unless redis.exists(key)
-      decrypt redis.get(key), config
+      raise CacheMiss unless redis.exists(redis_key(key, config))
+      decrypt(redis.get(redis_key(key, config)), config)
     end
 
     def get_value(key, config)
@@ -58,7 +58,7 @@ module Greencache
     end
 
     def set_value(key, value, config)
-      redis.setex key, config[:cache_time], encrypt(value, config)
+      redis.setex(redis_key(key, config), config[:cache_time], encrypt(value, config))
     end
 
     def merge_config(config)
@@ -80,6 +80,10 @@ module Greencache
 
     def configuration
       @configuration ||= Configuration.new
+    end
+
+    def redis_key(key, config)
+      [config[:key_prefix].to_s, key].join
     end
 
     def redis
