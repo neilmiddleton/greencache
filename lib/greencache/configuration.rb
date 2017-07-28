@@ -8,6 +8,7 @@ module Greencache
     attr_accessor :silent
     attr_accessor :logger
     attr_accessor :log_prefix
+    attr_accessor :key_prefix
 
     def initialize
       @cache_time = 600
@@ -17,6 +18,7 @@ module Greencache
       @silent = false
       @logger = nil
       @log_prefix = "greencache"
+      @key_prefix = ""
     end
 
     def to_hash
@@ -28,6 +30,7 @@ module Greencache
         silent:     silent,
         logger:     logger,
         log_prefix: log_prefix,
+        key_prefix: key_prefix,
         redis:      redis
       }
     end

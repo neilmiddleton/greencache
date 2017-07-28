@@ -109,4 +109,22 @@ describe Greencache do
     expect(rc.fernet).to receive(:generate).with("foo", '"bar"'){ "abc" }
     rc.encrypt("bar", {encrypt: true, secret: 'foo'})
   end
+
+  context "with a key_prefix" do
+    let(:config) do
+      {cache_time: 100, encrypt: false, key_prefix: "key_namespace:"}
+    end
+
+    it "uses the key_prefix when writing" do
+      expect(rc.redis).to receive(:setex).with("key_namespace:foo", 100, '"bar"')
+      rc.set_value("foo", "bar", config)
+    end
+
+    it "uses the key_prefix when reading" do
+      rc.redis.set "key_namespace:foo", "bar"
+      expect(rc.redis).to receive(:get).with("key_namespace:foo"){ "bar" }
+      expect(rc).to receive(:decrypt).with("bar", config)
+      rc.get_value("foo", config)
+    end
+  end
 end
