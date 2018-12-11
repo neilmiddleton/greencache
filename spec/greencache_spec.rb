@@ -109,4 +109,9 @@ describe Greencache do
     expect(rc.fernet).to receive(:generate).with("foo", '"bar"'){ "abc" }
     rc.encrypt("bar", {encrypt: true, secret: 'foo'})
   end
+
+  it 'expires keys' do
+    expect(rc.redis).to receive(:del).with('cache-key-123456')
+    expect(rc.expire('cache-key-123456'))
+  end
 end

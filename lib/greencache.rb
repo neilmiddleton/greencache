@@ -25,6 +25,10 @@ module Greencache
       value
     end
 
+    def expire(redis_key)
+      redis.del(redis_key) if redis_up?
+    end
+
     private def read_from_cache!(redis_key, config)
       value = get_value!(redis_key, config)
       log("cache.hit", redis_key, config)
