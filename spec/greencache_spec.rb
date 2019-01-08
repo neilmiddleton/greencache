@@ -100,6 +100,19 @@ describe Greencache do
     rc.get_value("foo", {encrypt: true})
   end
 
+  it "gets a value from memory if a rapid re-lookup" do
+    expect(rc.redis).not_to receive(:get).with("foo")
+    rc.cache ("foo") { "bar" }
+    rc.cache ("foo") { "bar" }
+  end
+
+  it "gets a value from redis if a slow re-lookup" do
+    expect(rc.redis).to receive(:get).with("foo").once
+    rc.cache ("foo") { "bar" }
+    sleep(1)
+    rc.cache ("foo") { "bar" }
+  end
+
   it 'can set a value' do
     expect(rc.redis).to receive(:setex).with("foo", 100, '"bar"')
     rc.set_value("foo", "bar", {cache_time: 100, encrypt: false})

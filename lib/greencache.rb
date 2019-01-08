@@ -1,13 +1,16 @@
 require "greencache/version"
 require "fernet"
 require "greencache/configuration"
+require "mini_cache"
 
 Fernet::Configuration.run do |config|
   config.enforce_ttl = false
 end
 
 module Greencache
+
   class CacheMiss < RuntimeError; end
+
   class << self
     attr_writer :configuration
 
@@ -53,7 +56,9 @@ module Greencache
 
     private def get_value!(key, config)
       raise CacheMiss unless redis.exists(key)
-      decrypt redis.get(key), config
+      result = memory_cache.get(key)
+      result = decrypt(redis.get(key), config) if result.nil?
+      result
     end
 
     def get_value(key, config)
@@ -63,6 +68,7 @@ module Greencache
 
     def set_value(key, value, config)
       redis.setex key, config[:cache_time], encrypt(value, config)
+      memory_cache.set(key, value, expires_in: 1)
     end
 
     def merge_config(config)
@@ -122,6 +128,10 @@ module Greencache
 
     def fernet
       ::Fernet
+    end
+
+    def memory_cache
+      @@memory_cache ||= MiniCache::Store.new
     end
   end
 end
